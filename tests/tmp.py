@@ -3,7 +3,7 @@ import importlib
 
 
 import d6tcollect
-d6tcollect.submit = False
+d6tcollect.submit = True
 d6tcollect.host = 'https://d6tpipe-staging-demo.herokuapp.com'
 d6tcollect.host = 'http://192.168.33.10:5000'
 
@@ -30,6 +30,6 @@ youmodule.utils.somefct(1,1)
 # youmodule.utils.somefct()
 
 import time
-# print('sleep');time.sleep(10);
+print('sleep');time.sleep(10);
 quit()
 

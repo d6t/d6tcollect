@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='d6tcollect',
-    version='0.1.4',
+    version='1.0.1',
     packages=['d6tcollect'],
     url='https://github.com/d6t/d6tcollect',
     license='MIT',

@@ -30,8 +30,6 @@ def _request(payload):
         pass
 
 def _submit(payload):
-    print(payload)
-    return
     _t = threading.Thread(target=_request, args=(payload,))
     _t.daemon = True
     _t.start()
