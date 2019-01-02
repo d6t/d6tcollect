@@ -15,6 +15,7 @@ import uuid
 
 
 submit = True
+ignore_errors = True
 profile = 'prod'
 host = 'https://pipe.databolt.tech'
 endpoint = '/v1/api/collect/'
@@ -26,8 +27,11 @@ def _request(payload):
         payload['uuid']=uuid.UUID(int=uuid.getnode())
         req = urllib.request.Request(host + endpoint, data=json.dumps(payload, default=str).encode('utf-8'), headers={'content-type': 'application/json', "Source": source})
         urllib.request.urlopen(req)
-    except:
-        pass
+    except Exception as e:
+        if ignore_errors:
+            pass
+        else:
+            raise e
 
 def _submit(payload):
     _t = threading.Thread(target=_request, args=(payload,))

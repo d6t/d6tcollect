@@ -4,6 +4,7 @@ import importlib
 
 import d6tcollect
 d6tcollect.submit = True
+d6tcollect.ignore_errors = False
 d6tcollect.host = 'https://d6tpipe-staging-demo.herokuapp.com'
 d6tcollect.host = 'http://192.168.33.10:5000'
 
