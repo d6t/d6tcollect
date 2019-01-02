@@ -10,7 +10,7 @@ Example of data collected `{'package': 'module', 'module': 'module.utils', 'clas
 
 See [privacy notice](https://www.databolt.tech/index-terms.html#privacy)
 
-To disable collection run the blow before importing libraries which use d6tcollect
+To disable collection run the below before importing libraries which use d6tcollect
 
 ```python
 
