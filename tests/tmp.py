@@ -18,6 +18,8 @@ d={"profile": "dev", "class": "Collect", "function": "MyClass.myfunction_3", "mo
 # import d6tcollect
 # importlib.reload(d6tcollect)
 
+# youmodule.utils.MyClass1().somefct()
+
 
 myinstance = youmodule.utils.MyClass(1, 2, value=100)
 print(myinstance.myfunction_1(5, another=2))
