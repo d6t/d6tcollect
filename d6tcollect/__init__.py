@@ -24,7 +24,7 @@ source = 'd6tcollect'
 
 def _request(payload):
     try:
-        payload['uuid']=uuid.UUID(int=uuid.getnode())
+        payload['uuid']=str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         req = urllib.request.Request(host + endpoint, data=json.dumps(payload, default=str).encode('utf-8'), headers={'content-type': 'application/json', "Source": source})
         urllib.request.urlopen(req)
     except Exception as e:
@@ -34,6 +34,8 @@ def _request(payload):
             raise e
 
 def _submit(payload):
+    print(payload)
+    return None
     _t = threading.Thread(target=_request, args=(payload,))
     _t.daemon = True
     _t.start()
@@ -71,6 +73,8 @@ def collect(func):
             return func(*args, **kwargs)
         except Exception as e:
             payload['event'] = 'exception'
+            payload['exceptionType'] = e.__class__.__name__
+            payload['exceptionMsg'] = str(e)
             _submit(payload)
             raise e
 
@@ -99,6 +103,8 @@ def _collectClass(func):
             return func(self, *args, **kwargs)
         except Exception as e:
             payload['event'] = 'exception'
+            payload['exceptionType'] = e.__class__.__name__
+            payload['exceptionMsg'] = str(e)
             _submit(payload)
             raise e
 
