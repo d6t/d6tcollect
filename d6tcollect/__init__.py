@@ -34,8 +34,6 @@ def _request(payload):
             raise e
 
 def _submit(payload):
-    print(payload)
-    return None
     _t = threading.Thread(target=_request, args=(payload,))
     _t.daemon = True
     _t.start()
