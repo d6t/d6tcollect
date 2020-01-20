@@ -15,6 +15,9 @@ setup(
         "For privacy notice see https://www.databolt.tech/index-terms.html#privacy",
     install_requires=[
     ],
+    extras_require = {
+        'track': ['beautifulsoup4'],
+    },
     include_package_data=True,
     python_requires='>=3.5',
     keywords=['d6tcollect', 'ingest csv'],
