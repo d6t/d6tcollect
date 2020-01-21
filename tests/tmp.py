@@ -1,36 +1,3 @@
-
-import importlib
-
-
-import d6tcollect
-d6tcollect.submit = True
-d6tcollect.ignore_errors = False
-d6tcollect.host = 'http://192.168.33.10:5000'
-d6tcollect.host = 'https://d6tpipe-staging-demo.herokuapp.com'
-d6tcollect.host = 'http://localhost:8080'
-
-import d6tcollect.track
-htmltext = '''
-<html>
-<body>
-Hello world!
-</body>
-</html>
-'''
-
-import datetime
-cfg_track = {
-    "userid": "master@deepmind.com",
-    "username": "master@deepmind.com",
-    "appid": "app1",
-    "appversion": "2020-01-01",
-    "target": "{eventid}",
-}
-
-tracker = d6tcollect.track.TrackAppUserEmail(htmltext,cfg_track['appid'],cfg_track['target'])
-r = tracker.process_all(['a@b.com','c@d.com'])
-
-quit()
 import youmodule
 
 d={"profile": "dev", "class": "Collect", "function": "MyClass.myfunction_3", "module": "MyClass", "event": "call", "params": {"args": 1, "kwargs": ""}}

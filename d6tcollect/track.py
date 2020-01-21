@@ -10,7 +10,7 @@ class TrackAppUserEmail(object):
         self.appid = appid
         self.target = target
         self.appversion = appversion
-        self.args = args
+        self.args = {} if args is None else args
 
     def link_replace(self,userid,username,bodyhtml=None):
         soup = bs(self.bodyhtml if bodyhtml is None else bodyhtml, "html.parser" )
@@ -41,9 +41,9 @@ class TrackAppUserEmail(object):
             "args": self.args
         }
         hashid = requests.post(url, json=payload).json()['hashid']
-        src = f'<img href="{url}/{hashid}">'
+        src = f'<img src="{url}/{hashid}">'
         bodyhtml = self.bodyhtml if bodyhtml is None else bodyhtml
-        bodyhtml = self.bodyhtml.replace('</body>',f'{src}</body>')
+        bodyhtml = bodyhtml.replace('</body>',f'{src}</body>')
         return bodyhtml
 
     def process_all(self,recipients):
