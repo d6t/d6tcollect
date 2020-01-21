@@ -1,6 +1,7 @@
 import pytest
 import importlib, requests
 from bs4 import BeautifulSoup as bs
+import pandas as pd
 
 import d6tcollect
 d6tcollect.submit = True
@@ -67,3 +68,12 @@ def test_TrackAppUserEmail(cleanup):
                 r = requests.get(i['src'])
                 assert r.status_code==200
 
+    r = runpost('/query/content')
+    assert len(r)==cfg_nreceiver*2
+    dft = pd.DataFrame(list(r))
+    t = dft['userid'].unique().tolist()
+    assert len(t)==cfg_nreceiver
+    assert t==cfg_receiver
+
+    t = dft['action'].unique().tolist()
+    assert t==['open-link','open-email']

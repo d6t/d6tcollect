@@ -2,8 +2,8 @@ from setuptools import setup
 
 setup(
     name='d6tcollect',
-    version='1.0.4',
-    packages=['d6tcollect'],
+    version='1.0.5',
+    packages=['d6tcollect','d6tcollect.track'],
     url='https://github.com/d6t/d6tcollect',
     license='MIT',
     author='DataBolt Team',
@@ -20,6 +20,6 @@ setup(
     },
     include_package_data=True,
     python_requires='>=3.5',
-    keywords=['d6tcollect', 'ingest csv'],
+    keywords=['d6tcollect', 'usage tracking','engagement tracking'],
     classifiers=[]
 )

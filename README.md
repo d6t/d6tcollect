@@ -32,3 +32,7 @@ d6tcollect.submit = False
 
 See https://www.databolt.tech/index-terms.html#privacy
 
+## Email engagement tracking
+
+With a d6tcollect server you can track email engagement ie read receipts and link clicks. Allows for on-prem internal deployment.
+[Request demo](https://pipe.databolt.tech/gui/request-premium/)
