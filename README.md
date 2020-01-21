@@ -36,3 +36,29 @@ See https://www.databolt.tech/index-terms.html#privacy
 
 With a d6tcollect server you can track email engagement ie read receipts and link clicks. Allows for on-prem internal deployment.
 [Request demo](https://pipe.databolt.tech/gui/request-premium/)
+
+```python
+
+    import d6tcollect, d6tcollect.track
+    d6tcollect.submit = True
+    d6tcollect.ignore_errors = False
+    d6tcollect.host = 'http://d6tcollect.yourcompany.com'
+    d6tcollect.endpoint = '/v1/api/content/'
+    
+    htmltext = '''
+    <html>
+    <body>
+    Hello world!
+    <a href="https://www.deepmind.com">click here</a>
+    <img src="#">
+    </body>
+    </html>
+    '''
+
+    tracker = d6tcollect.track.TrackAppUserEmail(htmltext,"app-utest","utest-event1")
+    cfg_receiver = ['a@b.com','c@d.com']
+    user_content = tracker.process_all(cfg_receiver)
+    for receiver,email_html in user_content.items():
+        send_email([receiver],'yourname@company.com','Email tracking',email_html)
+
+```
