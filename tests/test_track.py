@@ -21,7 +21,12 @@ def url(endpoint):
 def run(endpoint,method='get',body=None):
     fun = getattr(requests,method)
     if method in ['post','put','patch']:
-        return fun(url(endpoint), json=body).json()
+        r = fun(url(endpoint), json=body)
+        try:
+            r = r.json()
+        except:
+            pass
+        return r
     else:
         return fun(url(endpoint)).json()
 
