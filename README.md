@@ -32,6 +32,14 @@ d6tcollect.submit = False
 
 See https://www.databolt.tech/index-terms.html#privacy
 
+## Installation
+
+Install with `pip install d6tcollect`. To update, run `pip install d6tcollect -U --no-deps`.
+
+You can also clone the repo and run `pip install .`
+
+To enable engagement tracking do `pip install d6tcollect[track]` or `pip install .[track]`.
+
 ## Email engagement tracking
 
 With a d6tcollect server you can track email engagement ie read receipts and link clicks. Allows for on-prem internal deployment.
