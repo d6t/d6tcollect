@@ -75,7 +75,7 @@ YESTEDAYS_REPORT_PATH = os.path.join(DIR_NAME, YESTEDAYS_REPORT)
 
 
 def is_daily_summary_sent():
-    # New logic needs to implemented here
+    # New logic needs to be implemented here
     # if len(get_payloads()) == 0:
 
     return os.path.exists(YESTEDAYS_REPORT_PATH)
