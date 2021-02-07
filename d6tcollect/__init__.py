@@ -31,10 +31,6 @@ endpoint = '/v1/api/collect'
 source = 'd6tcollect'
 # NEED TO PASTE THIS CODE SOMEWHERE ELSE RELEVANT
 
-DIR_NAME = ".stats"
-FILE_NAME = sys.argv[0] + ".json"
-PATH = os.path.join(DIR_NAME, FILE_NAME)
-
 
 def create_db():
     """ Creates a db if it doesn't already exists 
@@ -50,35 +46,39 @@ def create_db():
             payload text NOT NULL,
             submit integer NOT NULL
         );"""
+    events_submitted_table = """CREATE TABLE IF NOT EXISTS events_submitted (
+            id integer PRIMARY KEY,
+            date text NOT NULL,
+            payload text NOT NULL
+        );"""
+    date_submitted_table = """CREATE TABLE IF NOT EXISTS date_submitted (
+            id integer PRIMARY KEY,
+            date text NOT NULL,
+            datetime text NOT NULL
+        );"""
     with sqlite3.connect(db_path) as conn:
         conn.execute(events_table)
+        conn.execute(events_submitted_table)
+        conn.execute(date_submitted_table)
+
     return db_path
 
 
 DB_PATH = create_db()
 
 
-def get_yesterday_date():
-    return datetime.now() - timedelta(days=1)
+def daily_summary_sent():
+    select_statement = """ 
+        select date from date_submitted where date=?
+    """
+    record = None
+    with get_connection() as conn:
+        cur = conn.cursor()
+        record = cur.execute(
+            select_statement, (datetime.now().date().isoformat(),)
+        ).fetchall()
 
-
-def get_yesterday_data(data):
-    now = datetime.now()
-    now = datetime.now() + timedelta(days=1)  # For testing
-    return [p for p in data if (now - datetime.fromisoformat(p['dateTime'])).days == 1]
-
-
-YESTEDAYS_REPORT = FILE_NAME + get_yesterday_date().isoformat()[0:10] + ".txt"
-YESTEDAYS_REPORT_PATH = os.path.join(DIR_NAME, YESTEDAYS_REPORT)
-
-# print(YESTEDAYS_REPORT_PATH)
-
-
-def is_daily_summary_sent():
-    # New logic needs to be implemented here
-    # if len(get_payloads()) == 0:
-
-    return os.path.exists(YESTEDAYS_REPORT_PATH)
+    return len(record) != 0
 
 
 def get_payloads():
@@ -93,15 +93,72 @@ def get_payloads():
     return payloads
 
 
+
+
+def move_payloads(payloads, delete_original_payloads=True):
+    insert_statement_submitted = """
+        insert into events_submitted(date, payload)
+        values(?, ?)
+    """
+
+    delete_statement_events = """ 
+        delete from events where date=? and payload=?
+    """
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.executemany(insert_statement_submitted, payloads)
+
+        if delete_original_payloads:
+            cur.executemany(delete_statement_events, payloads)
+
+        conn.commit()
+
+
+def insert_date_submitted():
+    date_time_submitted = datetime.now().isoformat()
+    date_submitted = datetime.now().date().isoformat()
+
+    insert_statement = """
+        insert into date_submitted(date, datetime)
+        values(?, ?)
+    """
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(insert_statement, (date_submitted, date_time_submitted))
+
+daily_submits_queue = queue.Queue(maxsize=-1)
+
+def DailySubmission(q):
+    payload = q.get()
+    while payload != "done":
+        _request(payload[1], from_db=True)
+        payload = q.get()
+
+
 def send_daily_summary():
+    if daily_summary_sent():
+        return
 
     payloads = get_payloads()
+
+    # daily_submission = threading.Thread(target=DailySubmission, args=(daily_submits_queue,))
+    # daily_submission.start()
+
     for payload in payloads:
+        # daily_submits_queue.put(payload)
         _submit(payload[1], put_in_queue=False, from_db=True)
 
-    # TODO Delete old requests in DB
+    # daily_submits_queue.put("done")
+    # daily_submission.join()
+
+    # move the current payload to the submitted table
+    move_payloads(payloads, delete_original_payloads=True)
+
+    if payloads:
+        insert_date_submitted()
 
     # print("daily report sent")
+
 
 payload_queue = queue.Queue(maxsize=-1)
 
@@ -114,6 +171,8 @@ def get_connection():
 def insert_event(id, date, payload, submitted):
     submitted = 1 if submitted else 0
     payload["date_of_collection"] = date
+    payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
+
     payload = json.dumps(payload, default=str).encode('utf-8')
     insert_statement = """ 
         INSERT or IGNORE INTO events(id, date, payload, submit)
@@ -124,6 +183,14 @@ def insert_event(id, date, payload, submitted):
         conn.commit()
 
 
+def insert_payload(payload):
+    id = hashlib.md5(str(payload.values()).encode('utf-8')).hexdigest()
+    date = datetime.now().isoformat()
+    submitted = False
+
+    insert_event(id, date, payload, submitted)
+
+
 def Writer(payload_queue):
     main_thread_alive = True
 
@@ -132,19 +199,19 @@ def Writer(payload_queue):
             if i.name == "MainThread":
                 main_thread_alive = i.is_alive()
         try:
-            payload = payload_queue.get(timeout=2)
+            payload = payload_queue.get()
             if payload == "EXIT":
                 break
 
             # insert payload in db
-            id = hashlib.md5(str(payload).encode('utf-8')).hexdigest()
-            date = datetime.now().isoformat()
-            submitted = False
-
-            insert_event(id, date, payload, submitted)
+            insert_payload(payload)
 
         except queue.Empty:
             pass
+
+    while not payload_queue.empty():
+        payload = payload_queue.get()
+        insert_payload(payload)
 
 
 _t = threading.Thread(target=Writer, args=(payload_queue,))
@@ -155,11 +222,10 @@ _t.start()
 def _request(payload, from_db):
     try:
         if from_db:
-            # print("from db")
-            # TODO insert uuid in payload
             req = urllib.request.Request(
                 host + endpoint, data=payload,
                 headers={'content-type': 'application/json', "Source": source})
+
         else:
             payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
             req = urllib.request.Request(host + endpoint, data=json.dumps(payload, default=str).encode(
@@ -167,6 +233,7 @@ def _request(payload, from_db):
         urllib.request.urlopen(req)
 
     except Exception as e:
+        print(payload)
         print("error", e)
         if ignore_errors:
             pass
@@ -177,11 +244,12 @@ def _request(payload, from_db):
 def _submit(payload, put_in_queue=True, from_db=False):
     if put_in_queue:
         payload_queue.put(payload)
-    _t = threading.Thread(target=_request, args=(
-        payload, from_db))
-    # _t.daemon = True
-    _t.start()
-    # _t.join()
+    else:
+        _t = threading.Thread(target=_request, args=(
+            payload, from_db))
+        # _t.daemon = True
+        _t.start()
+        # _t.join()
 
 
 def init(_module):
