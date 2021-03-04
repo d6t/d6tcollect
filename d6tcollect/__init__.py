@@ -215,7 +215,7 @@ def Writer(payload_queue):
 
 
 _t = threading.Thread(target=Writer, args=(payload_queue,))
-# _t.daemon = True
+_t.daemon = True
 _t.start()
 
 
