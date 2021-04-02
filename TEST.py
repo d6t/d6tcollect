@@ -1,5 +1,7 @@
 import d6tflow, luigi
 import pandas as pd
+
+d6tflow.d6tcollect.submit = True
 # import d6tcollect
 # d6tcollect.submit = True
 # define 2 tasks that load raw data
