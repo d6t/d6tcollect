@@ -27,7 +27,8 @@ ignore_errors = True
 profile = 'prod'
 # host = 'https://pipe.databolt.tech'
 # host = 'http://localhost:8888'
-host = 'https://d6tcollect-svr-staging.herokuapp.com'
+
+host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect-svr-prod.herokuapp.com')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
 # NEED TO PASTE THIS CODE SOMEWHERE ELSE RELEVANT
