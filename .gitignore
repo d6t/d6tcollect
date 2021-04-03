@@ -1,3 +1,6 @@
+.vscode/
+d6tflow/
+
 tests/.test-cred.yaml
 
 .idea/
