@@ -271,6 +271,10 @@ def collect(func):
         if submit == False:
             return func(*args, **kwargs)
 
+        for _cls in self.__class__.__bases__:
+            if 'd6tflow.tasks' not in str(_cls):
+                return func(self, *args, **kwargs)
+                
         module = func.__module__.split('.')
         payload = {
             'profile': profile,
