@@ -266,6 +266,7 @@ def init(_module):
 
 def collect(func):
     def wrapper(*args, **kwargs):
+        print("kwargs",  ",".join(kwargs))
         if submit == False:
             return func(*args, **kwargs)
 

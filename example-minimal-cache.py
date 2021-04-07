@@ -1,9 +1,6 @@
 import d6tflow, luigi
 import pandas as pd
 
-d6tflow.d6tcollect.submit = True
-# import d6tcollect
-# d6tcollect.submit = True
 # define 2 tasks that load raw data
 class Task1(d6tflow.tasks.TaskCache):
 
@@ -27,8 +24,6 @@ class Task3(d6tflow.tasks.TaskCache):
         self.save(df)
 
 # Execute task including all its dependencies
-d6tflow.run(Task3(), execution_summary=True)
+d6tflow.run(Task3())
 
 Task3().outputLoad()
-# from d6tcollect import payload_queue
-# payload_queue.put("EXIT")
