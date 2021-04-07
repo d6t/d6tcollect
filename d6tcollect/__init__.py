@@ -95,8 +95,6 @@ def get_payloads():
     return payloads
 
 
-
-
 def move_payloads(payloads, delete_original_payloads=True):
     insert_statement_submitted = """
         insert into events_submitted(date, payload)
@@ -128,7 +126,9 @@ def insert_date_submitted():
         cur = conn.cursor()
         cur.execute(insert_statement, (date_submitted, date_time_submitted))
 
+
 daily_submits_queue = queue.Queue(maxsize=-1)
+
 
 def DailySubmission(q):
     payload = q.get()
@@ -235,8 +235,6 @@ def _request(payload, from_db):
         urllib.request.urlopen(req)
 
     except Exception as e:
-        print(payload)
-        print("error", e)
         if ignore_errors:
             pass
         else:
@@ -271,10 +269,6 @@ def collect(func):
         if submit == False:
             return func(*args, **kwargs)
 
-        for _cls in self.__class__.__bases__:
-            if 'd6tflow.tasks' not in str(_cls):
-                return func(self, *args, **kwargs)
-                
         module = func.__module__.split('.')
         payload = {
             'profile': profile,
@@ -300,12 +294,28 @@ def collect(func):
     return wrapper
 
 
+def _isParentFromAllowedModule(bases):
+    '''Check all parents,
+    if any one of them don't inherit from allowed modules
+    return false'''
+    allowed_modules = ['d6tflow']
+    for base in bases:
+        for module in allowed_modules:
+            if module not in str(base):
+                return False
+    return True
+
+
 def _collectClass(func):
     def wrapper(self, *args, **kwargs):
         if submit == False:
             return func(self, *args, **kwargs)
 
+        if not _isParentFromAllowedModule(self.__class__.__bases__):
+            return func(self, *args, **kwargs)
         module = func.__module__.split('.')
+        print(".".join([self.__module__, self.__class__.__qualname__]),
+        func.__qualname__)
         payload = {
             'profile': profile,
             'package': module[0] if len(module) > 0 else module,
