@@ -282,6 +282,7 @@ def collect(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
+        print(payload)
         _submit(payload)
         try:
             return func(*args, **kwargs)
@@ -299,13 +300,11 @@ def _isParentFromAllowedModule(bases):
     '''Check all parents,
     if any one of them don't inherit from allowed modules
     return false'''
-    allowed_modules = ['d6tflow']
+    allowed_modules = ['d6tflow', 'MyClass0']
     for base in bases:
-        for module in allowed_modules:
-            if module not in str(base):
-                return False
-    return True
-
+        if any([module in str(base) for module in allowed_modules]):
+            return True
+    return False
 
 def _collectClass(func):
     def wrapper(self, *args, **kwargs):
@@ -313,7 +312,9 @@ def _collectClass(func):
             return func(self, *args, **kwargs)
 
         if not _isParentFromAllowedModule(self.__class__.__bases__):
+            print(f"{self} is not from allowed module")
             return func(self, *args, **kwargs)
+        print(f"{self} is from allowed module")
         module = func.__module__.split('.')
         print(".".join([self.__module__, self.__class__.__qualname__]),
         func.__qualname__)
@@ -340,6 +341,39 @@ def _collectClass(func):
 
     return wrapper
 
+def _collectFunctional(func):
+    ''' Work in Progress'''
+    def wrapper(self, *args, **kwargs):
+        if submit == False:
+            return func(self, *args, **kwargs)
+        
+        # print("functional", args, kwargs)
+        module = func.__module__.split('.')
+        # print(".".join([self.__module__, self.__class__.__qualname__]),
+        # func.__qualname__)
+        payload = {
+            'profile': profile,
+            'package': module[0] if len(module) > 0 else module,
+            'module': self.__module__,
+            'classModule': ".".join([self.__module__, self.__class__.__qualname__]),
+            'class': self.__class__.__qualname__,
+            'function': func.__qualname__,
+            'functionModule': ".".join([self.__module__, self.__class__.__name__, func.__name__]),
+            'event': 'call',
+            'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
+        }
+        print(payload)
+        _submit(payload)
+        try:
+            return func(self, *args, **kwargs)
+        except Exception as e:
+            payload['event'] = 'exception'
+            payload['exceptionType'] = e.__class__.__name__
+            payload['exceptionMsg'] = str(e)
+            _submit(payload)
+            raise e
+
+    return wrapper
 
 class Collect(type):
     def __new__(cls, name, bases, namespace, **kwds):

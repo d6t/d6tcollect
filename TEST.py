@@ -27,7 +27,7 @@ class Task3(d6tflow.tasks.TaskCache):
         self.save(df)
 
 # Execute task including all its dependencies
-d6tflow.run(Task3(), execution_summary=True)
+d6tflow.run(Task3(), execution_summary=True, forced_all=True)
 
 Task3().outputLoad()
 # from d6tcollect import payload_queue
