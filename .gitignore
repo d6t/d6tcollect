@@ -1,5 +1,6 @@
 .vscode/
 d6tflow/
+data/
 
 tests/.test-cred.yaml
 
