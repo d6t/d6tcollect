@@ -295,29 +295,27 @@ def collect(func):
 
     return wrapper
 
-
-def _isParentFromAllowedModule(bases):
-    '''Check all parents,
-    if any one of them don't inherit from allowed modules
-    return false'''
-    allowed_modules = ['d6tflow', 'MyClass0']
-    for base in bases:
-        if any([module in str(base) for module in allowed_modules]):
-            return True
-    return False
+def _mro_traverse(cls, func):
+    ''' Traverses the mro till it reaches the original implementer of the given function.
+    Returns the number of classes traversed'''
+    func_implementor = func.__qualname__.split(".")[0]
+    traversed = 0
+    for _cls in cls.__mro__:
+        if _cls.__name__ == func_implementor:
+            return traversed
+        traversed += 1
+    return -1
 
 def _collectClass(func):
     def wrapper(self, *args, **kwargs):
         if submit == False:
             return func(self, *args, **kwargs)
 
-        if not _isParentFromAllowedModule(self.__class__.__bases__):
-            print(f"{self} is not from allowed module")
+        limit_mro = getattr(self, "limit_mro", 2)
+        if _mro_traverse(self.__class__, func) > limit_mro:
             return func(self, *args, **kwargs)
-        print(f"{self} is from allowed module")
+
         module = func.__module__.split('.')
-        print(".".join([self.__module__, self.__class__.__qualname__]),
-        func.__qualname__)
         payload = {
             'profile': profile,
             'package': module[0] if len(module) > 0 else module,
@@ -329,6 +327,7 @@ def _collectClass(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
+        print(payload)
         _submit(payload)
         try:
             return func(self, *args, **kwargs)

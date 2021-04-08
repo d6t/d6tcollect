@@ -1,7 +1,8 @@
 .vscode/
 d6tflow/
+d6tflow_/
 data/
-
+test_issue*.py
 tests/.test-cred.yaml
 
 .idea/
