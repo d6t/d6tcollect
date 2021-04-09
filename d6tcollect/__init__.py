@@ -295,6 +295,7 @@ def collect(func):
 
     return wrapper
 
+
 def _mro_traverse(cls, func):
     ''' Traverses the mro till it reaches the original implementer of the given function.
     Returns the number of classes traversed'''
@@ -306,24 +307,38 @@ def _mro_traverse(cls, func):
         traversed += 1
     return -1
 
+
+def get_og_class(cls, func):
+    ''' og_class is the original implementor of the function func'''
+    func_implementor = func.__qualname__.split(".")[0]
+    for _cls in cls.__mro__:
+        if _cls.__name__ == func_implementor:
+            return _cls
+
+
 def _collectClass(func):
     def wrapper(self, *args, **kwargs):
         if submit == False:
             return func(self, *args, **kwargs)
+        og_class = get_og_class(self.__class__, func)
 
-        limit_mro = getattr(self, "limit_mro", 2)
-        if _mro_traverse(self.__class__, func) > limit_mro:
+        if og_class is None:
+            # This should never happen but just to be sure
             return func(self, *args, **kwargs)
+
+        # limit_mro = getattr(self, "limit_mro", 2)
+        # if _mro_traverse(self.__class__, func) > limit_mro:
+        #     return func(self, *args, **kwargs)
 
         module = func.__module__.split('.')
         payload = {
             'profile': profile,
             'package': module[0] if len(module) > 0 else module,
-            'module': self.__module__,
-            'classModule': ".".join([self.__module__, self.__class__.__qualname__]),
-            'class': self.__class__.__qualname__,
+            'module': og_class.__module__,
+            'classModule': ".".join([og_class.__module__, og_class.__qualname__]),
+            'class': og_class.__qualname__,
             'function': func.__qualname__,
-            'functionModule': ".".join([self.__module__, self.__class__.__name__, func.__name__]),
+            'functionModule': ".".join([og_class.__module__, og_class.__name__, func.__name__]),
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
@@ -340,39 +355,6 @@ def _collectClass(func):
 
     return wrapper
 
-def _collectFunctional(func):
-    ''' Work in Progress'''
-    def wrapper(self, *args, **kwargs):
-        if submit == False:
-            return func(self, *args, **kwargs)
-        
-        # print("functional", args, kwargs)
-        module = func.__module__.split('.')
-        # print(".".join([self.__module__, self.__class__.__qualname__]),
-        # func.__qualname__)
-        payload = {
-            'profile': profile,
-            'package': module[0] if len(module) > 0 else module,
-            'module': self.__module__,
-            'classModule': ".".join([self.__module__, self.__class__.__qualname__]),
-            'class': self.__class__.__qualname__,
-            'function': func.__qualname__,
-            'functionModule': ".".join([self.__module__, self.__class__.__name__, func.__name__]),
-            'event': 'call',
-            'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
-        }
-        print(payload)
-        _submit(payload)
-        try:
-            return func(self, *args, **kwargs)
-        except Exception as e:
-            payload['event'] = 'exception'
-            payload['exceptionType'] = e.__class__.__name__
-            payload['exceptionMsg'] = str(e)
-            _submit(payload)
-            raise e
-
-    return wrapper
 
 class Collect(type):
     def __new__(cls, name, bases, namespace, **kwds):
