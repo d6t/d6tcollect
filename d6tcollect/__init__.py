@@ -25,12 +25,16 @@ import hashlib
 submit = True
 ignore_errors = True
 profile = 'prod'
-# host = 'https://pipe.databolt.tech'
-# host = 'http://localhost:8888'
 
+# host = 'http://localhost:8888'
+<<<<<<< HEAD
+
+=======
+>>>>>>> 1641ac6 (cleanup)
 host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect-svr-prod.herokuapp.com')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
+
 # NEED TO PASTE THIS CODE SOMEWHERE ELSE RELEVANT
 
 
@@ -143,23 +147,13 @@ def send_daily_summary():
 
     payloads = get_payloads()
 
-    # daily_submission = threading.Thread(target=DailySubmission, args=(daily_submits_queue,))
-    # daily_submission.start()
-
     for payload in payloads:
         # daily_submits_queue.put(payload)
         _submit(payload[1], put_in_queue=False, from_db=True)
-
-    # daily_submits_queue.put("done")
-    # daily_submission.join()
-
-    # move the current payload to the submitted table
     move_payloads(payloads, delete_original_payloads=True)
 
     if payloads:
         insert_date_submitted()
-
-    # print("daily report sent")
 
 
 payload_queue = queue.Queue(maxsize=-1)
@@ -295,19 +289,6 @@ def collect(func):
 
     return wrapper
 
-
-def _mro_traverse(cls, func):
-    ''' Traverses the mro till it reaches the original implementer of the given function.
-    Returns the number of classes traversed'''
-    func_implementor = func.__qualname__.split(".")[0]
-    traversed = 0
-    for _cls in cls.__mro__:
-        if _cls.__name__ == func_implementor:
-            return traversed
-        traversed += 1
-    return -1
-
-
 def get_og_class(cls, func):
     ''' og_class is the original implementor of the function func'''
     func_implementor = func.__qualname__.split(".")[0]
@@ -325,10 +306,6 @@ def _collectClass(func):
         if og_class is None:
             # This should never happen but just to be sure
             return func(self, *args, **kwargs)
-
-        # limit_mro = getattr(self, "limit_mro", 2)
-        # if _mro_traverse(self.__class__, func) > limit_mro:
-        #     return func(self, *args, **kwargs)
 
         module = func.__module__.split('.')
         payload = {
