@@ -27,10 +27,6 @@ ignore_errors = True
 profile = 'prod'
 
 # host = 'http://localhost:8888'
-<<<<<<< HEAD
-
-=======
->>>>>>> 1641ac6 (cleanup)
 host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect-svr-prod.herokuapp.com')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
@@ -260,7 +256,7 @@ def init(_module):
 
 def collect(func):
     def wrapper(*args, **kwargs):
-        print("kwargs",  ",".join(kwargs))
+        # print("kwargs",  ",".join(kwargs))
         if submit == False:
             return func(*args, **kwargs)
 
@@ -276,7 +272,7 @@ def collect(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
-        print(payload)
+        # print(payload)
         _submit(payload)
         try:
             return func(*args, **kwargs)
@@ -319,7 +315,7 @@ def _collectClass(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
-        print(payload)
+        # print(payload)
         _submit(payload)
         try:
             return func(self, *args, **kwargs)
