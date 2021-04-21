@@ -25,12 +25,12 @@ import hashlib
 submit = True
 ignore_errors = True
 profile = 'prod'
-# host = 'https://pipe.databolt.tech'
-# host = 'http://localhost:8888'
 
+# host = 'http://localhost:8888'
 host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect-svr-prod.herokuapp.com')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
+
 # NEED TO PASTE THIS CODE SOMEWHERE ELSE RELEVANT
 
 
@@ -95,8 +95,6 @@ def get_payloads():
     return payloads
 
 
-
-
 def move_payloads(payloads, delete_original_payloads=True):
     insert_statement_submitted = """
         insert into events_submitted(date, payload)
@@ -128,7 +126,9 @@ def insert_date_submitted():
         cur = conn.cursor()
         cur.execute(insert_statement, (date_submitted, date_time_submitted))
 
+
 daily_submits_queue = queue.Queue(maxsize=-1)
+
 
 def DailySubmission(q):
     payload = q.get()
@@ -143,23 +143,13 @@ def send_daily_summary():
 
     payloads = get_payloads()
 
-    # daily_submission = threading.Thread(target=DailySubmission, args=(daily_submits_queue,))
-    # daily_submission.start()
-
     for payload in payloads:
         # daily_submits_queue.put(payload)
         _submit(payload[1], put_in_queue=False, from_db=True)
-
-    # daily_submits_queue.put("done")
-    # daily_submission.join()
-
-    # move the current payload to the submitted table
     move_payloads(payloads, delete_original_payloads=True)
 
     if payloads:
         insert_date_submitted()
-
-    # print("daily report sent")
 
 
 payload_queue = queue.Queue(maxsize=-1)
@@ -235,8 +225,6 @@ def _request(payload, from_db):
         urllib.request.urlopen(req)
 
     except Exception as e:
-        print(payload)
-        print("error", e)
         if ignore_errors:
             pass
         else:
@@ -268,6 +256,7 @@ def init(_module):
 
 def collect(func):
     def wrapper(*args, **kwargs):
+        # print("kwargs",  ",".join(kwargs))
         if submit == False:
             return func(*args, **kwargs)
 
@@ -283,6 +272,7 @@ def collect(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
+        # print(payload)
         _submit(payload)
         try:
             return func(*args, **kwargs)
@@ -295,24 +285,37 @@ def collect(func):
 
     return wrapper
 
+def get_og_class(cls, func):
+    ''' og_class is the original implementor of the function func'''
+    func_implementor = func.__qualname__.split(".")[0]
+    for _cls in cls.__mro__:
+        if _cls.__name__ == func_implementor:
+            return _cls
+
 
 def _collectClass(func):
     def wrapper(self, *args, **kwargs):
         if submit == False:
+            return func(self, *args, **kwargs)
+        og_class = get_og_class(self.__class__, func)
+
+        if og_class is None:
+            # This should never happen but just to be sure
             return func(self, *args, **kwargs)
 
         module = func.__module__.split('.')
         payload = {
             'profile': profile,
             'package': module[0] if len(module) > 0 else module,
-            'module': self.__module__,
-            'classModule': ".".join([self.__module__, self.__class__.__qualname__]),
-            'class': self.__class__.__qualname__,
+            'module': og_class.__module__,
+            'classModule': ".".join([og_class.__module__, og_class.__qualname__]),
+            'class': og_class.__qualname__,
             'function': func.__qualname__,
-            'functionModule': ".".join([self.__module__, self.__class__.__name__, func.__name__]),
+            'functionModule': ".".join([og_class.__module__, og_class.__name__, func.__name__]),
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
+        # print(payload)
         _submit(payload)
         try:
             return func(self, *args, **kwargs)
