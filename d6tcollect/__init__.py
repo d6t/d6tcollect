@@ -137,8 +137,8 @@ def DailySubmission(q):
         payload = q.get()
 
 
-def send_daily_summary():
-    if daily_summary_sent():
+def send_daily_summary(forced=False):
+    if daily_summary_sent() and not forced:
         return
     print("send_daily_summary")
     payloads = get_payloads()
