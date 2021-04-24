@@ -26,8 +26,8 @@ submit = True
 ignore_errors = True
 profile = 'prod'
 
-# host = 'http://localhost:8888'
-host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect.databolt.tech')
+host = 'http://localhost:8080'
+host = os.environ.get('D6TCOLLECT_SVR', 'https://d6tcollect.databolt.tech')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
 
@@ -140,7 +140,7 @@ def DailySubmission(q):
 def send_daily_summary():
     if daily_summary_sent():
         return
-
+    print("send_daily_summary")
     payloads = get_payloads()
 
     for payload in payloads:
@@ -163,7 +163,6 @@ def get_connection():
 def insert_event(id, date, payload, submitted):
     submitted = 1 if submitted else 0
     payload["date_of_collection"] = date
-    payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
 
     payload = json.dumps(payload, default=str).encode('utf-8')
     insert_statement = """ 
@@ -192,12 +191,12 @@ def Writer(payload_queue):
                 main_thread_alive = i.is_alive()
         try:
             payload = payload_queue.get()
+            # print("payload: ", payload)
             if payload == "EXIT":
                 break
 
             # insert payload in db
             insert_payload(payload)
-
         except queue.Empty:
             pass
 
@@ -223,7 +222,6 @@ def _request(payload, from_db):
             req = urllib.request.Request(host + endpoint, data=json.dumps(payload, default=str).encode(
                 'utf-8'), headers={'content-type': 'application/json', "Source": source})
         urllib.request.urlopen(req)
-
     except Exception as e:
         if ignore_errors:
             pass
@@ -237,9 +235,9 @@ def _submit(payload, put_in_queue=True, from_db=False):
     else:
         _t = threading.Thread(target=_request, args=(
             payload, from_db))
-        # _t.daemon = True
+        _t.daemon = True
         _t.start()
-        # _t.join()
+        _t.join()
 
 
 def init(_module):
@@ -272,6 +270,7 @@ def collect(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
+        payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         # print(payload)
         _submit(payload)
         try:
@@ -284,6 +283,7 @@ def collect(func):
             raise e
 
     return wrapper
+
 
 def get_og_class(cls, func):
     ''' og_class is the original implementor of the function func'''
@@ -315,6 +315,7 @@ def _collectClass(func):
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
         }
+        payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         # print(payload)
         _submit(payload)
         try:
