@@ -27,7 +27,7 @@ ignore_errors = True
 profile = 'prod'
 
 # host = 'http://localhost:8888'
-host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect-svr-prod.herokuapp.com')
+host = os.environ.get('D6TCOLLECT_SVR','https://d6tcollect.databolt.tech')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
 
@@ -37,7 +37,7 @@ source = 'd6tcollect'
 def create_db():
     """ Creates a db if it doesn't already exists 
     and returns the path to it """
-    collect_folder = "d6tcollect"
+    collect_folder = ".d6tcollect"
     db_name = "collect.sqlite"
     db_path = Path.home() / collect_folder
     db_path.mkdir(parents=True, exist_ok=True)

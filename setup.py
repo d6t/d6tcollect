@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='d6tcollect',
     version='1.0.6',
-    packages=['d6tcollect','d6tcollect.track'],
+    packages=['d6tcollect'],
     url='https://github.com/d6t/d6tcollect',
     license='MIT',
     author='DataBolt Team',
