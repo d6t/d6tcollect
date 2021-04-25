@@ -113,6 +113,8 @@ def move_payloads(payloads, delete_original_payloads=True):
 
         conn.commit()
 
+def today():
+    return datetime.now().strftime("%Y-%m-%d")
 
 def insert_date_submitted():
     date_time_submitted = datetime.now().isoformat()
@@ -140,7 +142,7 @@ def DailySubmission(q):
 def send_daily_summary(forced=False):
     if daily_summary_sent() and not forced:
         return
-    print("send_daily_summary")
+    #print("send_daily_summary")
     payloads = get_payloads()
 
     for payload in payloads:
@@ -162,7 +164,6 @@ def get_connection():
 
 def insert_event(id, date, payload, submitted):
     submitted = 1 if submitted else 0
-    payload["date_of_collection"] = date
 
     payload = json.dumps(payload, default=str).encode('utf-8')
     insert_statement = """ 
@@ -248,6 +249,7 @@ def init(_module):
         'package': module[0] if len(module) > 0 else module,
         'module': _module,
         'event': 'import',
+        'date_of_collection': today()
     }
     _submit(payload)
 
@@ -268,7 +270,8 @@ def collect(func):
             'function': func.__qualname__,
             'functionModule': ".".join([func.__module__, func.__qualname__]),
             'event': 'call',
-            'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
+            'params': {'args': len(args), 'kwargs': ",".join(kwargs)},
+            'date_of_collection': today()
         }
         payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         # print(payload)
@@ -313,7 +316,8 @@ def _collectClass(func):
             'function': func.__qualname__,
             'functionModule': ".".join([og_class.__module__, og_class.__name__, func.__name__]),
             'event': 'call',
-            'params': {'args': len(args), 'kwargs': ",".join(kwargs)}
+            'params': {'args': len(args), 'kwargs': ",".join(kwargs)},
+            'date_of_collection': today()
         }
         payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         # print(payload)
