@@ -31,8 +31,6 @@ host = os.environ.get('D6TCOLLECT_SVR', 'https://d6tcollect.databolt.tech')
 endpoint = '/v1/api/collect'
 source = 'd6tcollect'
 
-# NEED TO PASTE THIS CODE SOMEWHERE ELSE RELEVANT
-
 
 def create_db():
     """ Creates a db if it doesn't already exists 
@@ -41,6 +39,7 @@ def create_db():
     db_name = "collect.sqlite"
     db_path = Path.home() / collect_folder
     db_path.mkdir(parents=True, exist_ok=True)
+
     db_path = str(db_path / db_name)
     events_table = """CREATE TABLE IF NOT EXISTS events (
             id text PRIMARY KEY,
@@ -50,7 +49,7 @@ def create_db():
         );"""
     events_submitted_table = """CREATE TABLE IF NOT EXISTS events_submitted (
             id integer PRIMARY KEY,
-            date text NOT NULL,
+            date_submit text NOT NULL,
             payload text NOT NULL
         );"""
     date_submitted_table = """CREATE TABLE IF NOT EXISTS date_submitted (
@@ -97,7 +96,7 @@ def get_payloads():
 
 def move_payloads(payloads, delete_original_payloads=True):
     insert_statement_submitted = """
-        insert into events_submitted(date, payload)
+        insert into events_submitted(date_submit, payload)
         values(?, ?)
     """
 
@@ -249,7 +248,7 @@ def init(_module):
         'package': module[0] if len(module) > 0 else module,
         'module': _module,
         'event': 'import',
-        'date_of_collection': today()
+        'date_collect': today()
     }
     _submit(payload)
 
@@ -271,7 +270,7 @@ def collect(func):
             'functionModule': ".".join([func.__module__, func.__qualname__]),
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)},
-            'date_of_collection': today()
+            'date_collect': today()
         }
         payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         # print(payload)
@@ -317,7 +316,7 @@ def _collectClass(func):
             'functionModule': ".".join([og_class.__module__, og_class.__name__, func.__name__]),
             'event': 'call',
             'params': {'args': len(args), 'kwargs': ",".join(kwargs)},
-            'date_of_collection': today()
+            'date_collect': today()
         }
         payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
         # print(payload)
