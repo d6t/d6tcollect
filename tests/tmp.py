@@ -22,7 +22,12 @@ except:
 youmodule.utils.somefct(1,1)
 # youmodule.utils.somefct()
 
-import time
-print('sleep');time.sleep(10);
+# import time
+# print('sleep');time.sleep(2);
+
+# import d6tcollect
+# d6tcollect.send_daily_summary(forced=True)
+
+
 quit()
 
