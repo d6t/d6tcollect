@@ -104,16 +104,20 @@ def move_payloads(payloads, delete_original_payloads=True):
         delete from events where date=? and payload=?
     """
     with get_connection() as conn:
+        payloads_events_submitted = [
+            (datetime.now(), payload[1]) for payload in payloads]
         cur = conn.cursor()
-        cur.executemany(insert_statement_submitted, payloads)
+        cur.executemany(insert_statement_submitted, payloads_events_submitted)
 
         if delete_original_payloads:
             cur.executemany(delete_statement_events, payloads)
 
         conn.commit()
 
+
 def today():
     return datetime.now().strftime("%Y-%m-%d")
+
 
 def insert_date_submitted():
     date_time_submitted = datetime.now().isoformat()
@@ -141,7 +145,7 @@ def DailySubmission(q):
 def send_daily_summary(forced=False):
     if daily_summary_sent() and not forced:
         return
-    #print("send_daily_summary")
+    # print("send_daily_summary")
     payloads = get_payloads()
 
     for payload in payloads:
