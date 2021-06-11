@@ -225,8 +225,9 @@ def _request(payload, from_db):
             payload['uuid'] = str(uuid.UUID(int=uuid.getnode())).split('-')[-1]
             req = urllib.request.Request(host + endpoint, data=json.dumps(payload, default=str).encode(
                 'utf-8'), headers={'content-type': 'application/json', "Source": source})
-        urllib.request.urlopen(req)
+        urllib.request.urlopen(req,  timeout=2)
     except Exception as e:
+        #print(e)
         if ignore_errors:
             pass
         else:
