@@ -12,7 +12,7 @@ setup(
     long_description_content_type= 'text/markdown',
     long_description='Much like websites, this library collects anonymous usage statistics.'
         'It ONLY collects import and function call events. It does NOT collect any of your data.'
-        "Example: `{'profile': 'prod', 'package': 'd6tmodule', 'module': 'd6tmodule.utils', 'classModule': 'd6tmodule.utils.MyClass', 'class': 'MyClass', 'function': 'MyClass0.myfunction_1', 'functionModule': 'd6tmodule.utils.MyClass.myfunction_1', 'event': 'call', 'params': {'args': 1, 'kwargs': 'another'}}"
+        "Example: `{'profile': 'prod', 'package': 'd6tmodule', 'module': 'd6tmodule.utils', 'classModule': 'd6tmodule.utils.MyClass', 'class': 'MyClass', 'function': 'MyClass0.myfunction_1', 'functionModule': 'd6tmodule.utils.MyClass.myfunction_1', 'event': 'call', 'params': {'args': 1, 'kwargs': 'another'}}`"
         "For privacy notice see https://www.databolt.tech/index-terms.html#privacy",
     install_requires=[
     ],
